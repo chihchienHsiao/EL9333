@@ -17,7 +17,8 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
         super(SimpleMonitor13, self).__init__(*args, **kwargs)
         self.datapaths = {}
         self.monitor_thread = hub.spawn(self._monitor)
-	self.linkTraffic = {}	
+	self.tempTraffic = [0] * 15
+	self.linkTraffic = []	
 
     @set_ev_cls(ofp_event.EventOFPStateChange,
                 [MAIN_DISPATCHER, DEAD_DISPATCHER])
@@ -83,10 +84,12 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                              ev.msg.datapath.id, stat.port_no,
                              stat.rx_packets, stat.rx_bytes, stat.rx_errors,
                              stat.tx_packets, stat.tx_bytes, stat.tx_errors)
-	    self.linkTraffic[stat.port_no + ev.msg.datapath.id * 3] += stat.rx_bytes
-	    
-	    for link in self.linkTraffic:
-	        print(link),
+	    if stat.port_no <= 3:
+	    	idx = (stat.port_no + (ev.msg.datapath.id - 1) * 3) - 1
+	    self.tempTraffic[idx] += stat.rx_bytes
+	    self.linkTraffic.append(self.tempTraffic)
+	    self.logger.info("??????? %d", stat.rx_bytes)
+	    print(self.linkTraffic)
 
 
 
