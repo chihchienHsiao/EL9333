@@ -9,7 +9,7 @@ from ryu.lib import hub
 
 #plot
 import matplotlib.pyplot as plt
-
+import numpy
 
 class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
 
@@ -86,8 +86,20 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
 
     def _monitor(self):
         while True:
+            self.linkTraffic.append(self.tempTraffic)
+            print(self.linkTraffic)
             for dp in self.datapaths.values():
                 self._request_stats(dp)
+
+	    #chihchien
+	    self.timeTick = self.timeTick + 10
+	    self.logger.info("Running for %d seconds", self.timeTick)
+	    if self.timeTick == 30:
+	        #print(self.linkTraffic)
+	        TlinkTraffic = numpy.transpose(self.linkTraffic)
+                t = [0, 10, 20]
+	        plt.plot(t, TlinkTraffic[0])
+	        plt.show()
             hub.sleep(10)
 
     def _request_stats(self, datapath):
@@ -135,22 +147,11 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                              ev.msg.datapath.id, stat.port_no,
                              stat.rx_packets, stat.rx_bytes, stat.rx_errors,
                              stat.tx_packets, stat.tx_bytes, stat.tx_errors)
-        if stat.port_no <= 3:
-            idx = (stat.port_no + (ev.msg.datapath.id - 1) * 3) - 1
-            self.tempTraffic[idx] += stat.rx_bytes
-            self.linkTraffic.append(self.tempTraffic)
-            self.logger.info("??????? %d", stat.rx_bytes)
-            print(self.linkTraffic)
+            if stat.port_no <= 3:
+                idx = (stat.port_no + (ev.msg.datapath.id - 1) * 3) - 1
+                self.tempTraffic[idx] += stat.rx_bytes
 
-	#chihchien
-	self.timeTick = self.timeTick + 1
-	self.logger.info("This is the %dth tick", self.timeTick)
-	if self.timeTick == 60:
-	    #print(self.linkTraffic)
-	    TlinkTraffic = numpy.transpose(self.linkTraffic)
-	    result = np.squeeze(np.asarray(TlinkTraffic))
-	    plt.plot(result)
-	    plt.show()
+
 
 
 
