@@ -9,6 +9,7 @@ from ryu.lib import hub
 
 #plot
 import matplotlib.pyplot as plt
+import numpy
 
 
 class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
@@ -18,7 +19,9 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
         self.datapaths = {}
         self.monitor_thread = hub.spawn(self._monitor)
 	self.tempTraffic = [0] * 15
-	self.linkTraffic = []	
+	self.linkTraffic = []
+	self.timeTick = 0	
+	self.timeOut = 10;
 
     @set_ev_cls(ofp_event.EventOFPStateChange,
                 [MAIN_DISPATCHER, DEAD_DISPATCHER])
@@ -88,8 +91,15 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
 	    	idx = (stat.port_no + (ev.msg.datapath.id - 1) * 3) - 1
 	    self.tempTraffic[idx] += stat.rx_bytes
 	    self.linkTraffic.append(self.tempTraffic)
-	    self.logger.info("??????? %d", stat.rx_bytes)
-	    print(self.linkTraffic)
+
+	self.timeTick = self.timeTick + 1
+	self.logger.info("This is the %dth tick", self.timeTick)
+	if self.timeTick == 600:
+	    #print(self.linkTraffic)
+	    TlinkTraffic = numpy.transpose(self.linkTraffic)
+	    plt.plot(TlinkTraffic[0])
+	    plt.plot(TlinkTraffic[1])
+	    plt.show()
 
 
 
