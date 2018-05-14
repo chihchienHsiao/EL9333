@@ -95,19 +95,23 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
 	    #chihchien
 	    self.timeTick = self.timeTick + 10
 	    self.logger.info("Running for %d seconds", self.timeTick)
-	    if self.timeTick == 60:
-	        #TlinkTraffic = numpy.transpose(self.linkTraffic)
-                #t = numpy.arange(0, 10 * len(TlinkTraffic), 10)
+	    if self.timeTick == 30:
+                #plotting
 		for x in range(len(self.linkTraffic) - 1, 0, -1):
                     self.logger.info("xxxxxxxx=%d", x)
 		    for y in range(len(self.linkTraffic)):
                         self.linkTraffic[x][y] = self.linkTraffic[x][y] - self.linkTraffic[x-1][y]
                 
 	        TlinkTraffic = numpy.transpose(self.linkTraffic)
-                t = numpy.arange(0, 10 * len(TlinkTraffic[0]), 10)
-	        plt.plot(t, TlinkTraffic[0])
+                for linkN in range(0, len(TlinkTraffic) ):
+                    t = numpy.arange(0, 10 * len(TlinkTraffic[0]), 10)
+                    plt.subplot(3, 5, linkN+1)
+	            plt.plot(t, TlinkTraffic[linkN])
+                    self.logger.info(linkN)
+                    self.logger.info(TlinkTraffic[14])
+                    self.logger.info("sucks")
 	        plt.show()
-            hub.sleep(10)
+            hub.sleep(1)
 
     def _request_stats(self, datapath):
         self.logger.debug('send stats request: %016x', datapath.id)
