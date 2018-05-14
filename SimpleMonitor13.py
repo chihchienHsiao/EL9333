@@ -88,27 +88,26 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
     def _monitor(self):
         while True:
             self.linkTraffic.append(self.tempTraffic)
-	    self.tempTraffic = [0] * 15
-            print(self.linkTraffic)
+            self.tempTraffic = [0] * 15
+                # print(self.linkTraffic)
             for dp in self.datapaths.values():
                 self._request_stats(dp)
 
-	    #chihchien
-	    self.timeTick = self.timeTick + 10
-	    self.logger.info("Running for %d seconds", self.timeTick)
-	    if self.timeTick == 60:
-	        #TlinkTraffic = numpy.transpose(self.linkTraffic)
-                #t = numpy.arange(0, 10 * len(TlinkTraffic), 10)
-		for x in range(len(self.linkTraffic) - 1, 0, -1):
+        #chihchien
+            self.timeTick = self.timeTick + 10
+            self.logger.info("Running for %d seconds", self.timeTick)
+            if self.timeTick == 60:
+                #TlinkTraffic = numpy.transpose(self.linkTraffic)
+                    #t = numpy.arange(0, 10 * len(TlinkTraffic), 10)
+                for x in range(len(self.linkTraffic) - 1, 0, -1):
                     self.logger.info("xxxxxxxx=%d", x)
-		    for y in range(len(self.linkTraffic)):
+                    for y in range(len(self.linkTraffic)):
                         self.linkTraffic[x][y] = self.linkTraffic[x][y] - self.linkTraffic[x-1][y]
-                
-	        TlinkTraffic = numpy.transpose(self.linkTraffic)
-                t = numpy.arange(0, 10 * len(TlinkTraffic[0]), 10)
-	        plt.plot(t, TlinkTraffic[0])
-	        plt.show()
-            hub.sleep(10)
+                    TlinkTraffic = numpy.transpose(self.linkTraffic)
+                    t = numpy.arange(0, 10 * len(TlinkTraffic[0]), 10)
+                    plt.plot(t, TlinkTraffic[0])
+                    plt.show()
+                    hub.sleep(10)
 
     def _request_stats(self, datapath):
         self.logger.debug('send stats request: %016x', datapath.id)
