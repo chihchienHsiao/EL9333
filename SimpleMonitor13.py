@@ -186,8 +186,13 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                     for y in range(len(self.linkTraffic)):
                         self.linkTraffic[x][y] = self.linkTraffic[x][y] - self.linkTraffic[x-1][y]
                     TlinkTraffic = numpy.transpose(self.linkTraffic)
+                for linkN in range(0, len(TlinkTraffic) ):
                     t = numpy.arange(0, 10 * len(TlinkTraffic[0]), 10)
-                    plt.plot(t, TlinkTraffic[0])
+                    plt.subplot(3, 5, linkN+1)
+                    plt.plot(t, TlinkTraffic[linkN])
+                    self.logger.info(linkN)
+                    self.logger.info(TlinkTraffic[14])
+                    self.logger.info("sucks")
                     plt.show()
                     hub.sleep(10)
 
