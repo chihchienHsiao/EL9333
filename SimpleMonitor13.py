@@ -61,7 +61,7 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                     )
                     actions = [parser.OFPActionOutput(2)]
                     self.add_flow(datapath, 5, match, actions)
-            elif dpid == 1:
+            elif dpid == 1 or dpid == 2:
                 for in_port in range(1,4):
                     if(in_port!=eth_dst):
                         match = parser.OFPMatch(
