@@ -68,9 +68,9 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                             eth_type=0x800,
                             eth_dst='00:00:00:00:00:0%d'%eth_dst,
                             in_port = in_port,
-                            ipv4_dst='10.0.0.1'
+                            ip_proto=17
                         )
-                        actions = [parser.OFPActionOutput(1)]
+                        actions = [parser.OFPActionOutput(eth_dst)]
                         self.add_flow(datapath, 5, match, actions)
 
     @set_ev_cls(ofp_event.EventOFPStateChange,
@@ -107,14 +107,14 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
             for dp in self.datapaths:
                 parser = dp.ofproto_parser
                 if dp.id == 3:
-                    if(link_max == 1 and trans[link_max]>link_left) or (link_max!=3 and trans[link_max]<=link_left):
+                    if(link_max == 0 and trans[link_max]>link_left) or (link_max!=0 and trans[link_max]<=link_left):
                         match = parser.OFPMatch(
                             eth_type=0x800,
                             eth_dst='00:00:00:00:00:02',
                             in_port=1,
                             ip_proto=17
                         ) 
-                        actions = [parser.OFPActionOutput(3-switch_max)]
+                        actions = [parser.OFPActionOutput(2-switch_max)]
                         self.add_flow(dp, 5, match, actions)
                     else:
                         match = parser.OFPMatch(
@@ -123,17 +123,17 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                             in_port=1,
                             ip_proto=17
                         ) 
-                        actions = [parser.OFPActionOutput(switch_max+2)]
+                        actions = [parser.OFPActionOutput(switch_max+1)]
                         self.add_flow(dp, 5, match, actions)
 
-                    if(link_max == 2 and trans[link_max]>link_left) or (link_max!=3 and trans[link_max]<=link_left):
+                    if(link_max == 1 and trans[link_max]>link_left) or (link_max!=1 and trans[link_max]<=link_left):
                         match = parser.OFPMatch(
                             eth_type=0x800,
                             eth_dst='00:00:00:00:00:03',
                             in_port=1,
                             ip_proto=17
                         ) 
-                        actions = [parser.OFPActionOutput(3-switch_max)]
+                        actions = [parser.OFPActionOutput(2-switch_max)]
                         self.add_flow(dp, 5, match, actions)
                     else:
                         match = parser.OFPMatch(
@@ -142,18 +142,18 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                             in_port=1,
                             ip_proto=17
                         ) 
-                        actions = [parser.OFPActionOutput(switch_max+2)]
+                        actions = [parser.OFPActionOutput(switch_max+1)]
                         self.add_flow(dp, 5, match, actions)
 
                 elif dp.id == 4:
-                    if(link_max == 3 and trans[link_max]>link_left) or (link_max!=3 and trans[link_max]<=link_left):
+                    if(link_max == 2 and trans[link_max]>link_left) or (link_max!=2 and trans[link_max]<=link_left):
                         match = parser.OFPMatch(
                             eth_type=0x800,
                             eth_dst='00:00:00:00:00:03',
                             in_port=1,
                             ip_proto=17
                         ) 
-                        actions = [parser.OFPActionOutput(3-switch_max)]
+                        actions = [parser.OFPActionOutput(2-switch_max)]
                         self.add_flow(dp, 5, match, actions)
                     else:
                         match = parser.OFPMatch(
@@ -162,7 +162,7 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                             in_port=1,
                             ip_proto=17
                         ) 
-                        actions = [parser.OFPActionOutput(switch_max+2)]
+                        actions = [parser.OFPActionOutput(switch_max+1)]
                         self.add_flow(dp, 5, match, actions)
 
             
@@ -183,7 +183,7 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                     #t = numpy.arange(0, 10 * len(TlinkTraffic), 10)
                 for x in range(len(self.linkTraffic) - 1, 0, -1):
                     self.logger.info("xxxxxxxx=%d", x)
-                    for y in range(len(self.linkTraffic)):
+                    for y in range(len(self.linkTraffic[0])):
                         self.linkTraffic[x][y] = self.linkTraffic[x][y] - self.linkTraffic[x-1][y]
                     TlinkTraffic = numpy.transpose(self.linkTraffic)
                 for linkN in range(0, len(TlinkTraffic) ):
@@ -193,8 +193,8 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                     self.logger.info(linkN)
                     self.logger.info(TlinkTraffic[14])
                     self.logger.info("sucks")
-                    plt.show()
-                    hub.sleep(10)
+                plt.show()
+            hub.sleep(10)
 
     def _request_stats(self, datapath):
         self.logger.debug('send stats request: %016x', datapath.id)
