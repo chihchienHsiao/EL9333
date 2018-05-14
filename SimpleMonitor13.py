@@ -95,8 +95,14 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
 	    #chihchien
 	    self.timeTick = self.timeTick + 10
 	    self.logger.info("Running for %d seconds", self.timeTick)
-	    if self.timeTick == 100:
-	        #print(self.linkTraffic)
+	    if self.timeTick == 60:
+	        #TlinkTraffic = numpy.transpose(self.linkTraffic)
+                #t = numpy.arange(0, 10 * len(TlinkTraffic), 10)
+		for x in range(len(self.linkTraffic) - 1, 0, -1):
+                    self.logger.info("xxxxxxxx=%d", x)
+		    for y in range(len(self.linkTraffic)):
+                        self.linkTraffic[x][y] = self.linkTraffic[x][y] - self.linkTraffic[x-1][y]
+                
 	        TlinkTraffic = numpy.transpose(self.linkTraffic)
                 t = numpy.arange(0, 10 * len(TlinkTraffic[0]), 10)
 	        plt.plot(t, TlinkTraffic[0])
