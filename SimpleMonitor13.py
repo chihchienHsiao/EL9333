@@ -11,6 +11,7 @@ from ryu.lib import hub
 import matplotlib.pyplot as plt
 import numpy
 
+
 class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
 
     def __init__(self, *args, **kwargs):
@@ -18,9 +19,10 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
         self.datapaths = {}
         self.monitor_thread = hub.spawn(self._monitor)
         self.tempTraffic = [0] * 15
+        self.tempFlow = [0] * 6
         self.linkTraffic = []	
-	self.timeTick = 0	
-	self.timeOut = 10
+        self.timeTick = 0	
+        self.timeOut = 10
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -86,32 +88,113 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
 
     def _monitor(self):
         while True:
+            # total traffic of switch 1 and 2
+            switch = [0]*2
+            switch[0] = sum(self.tempFlow[0:3])
+            switch[1] = sum(self.tempFlow[3:])
+            switch_max = numpy.argmax(switch)
+            # total traffic of h1->h2, h1->h3, h2->h3
+            trans = [0]*3
+            trans[0] = self.tempFlow[0]+self.tempFlow[3]
+            trans[1] = self.tempFlow[1]+self.tempFlow[4]
+            trans[2] = self.tempFlow[2]+self.tempFlow[5]
+            # group traffics 
+            index_list = [0,1,2]
+            link_max = numpy.argmax(trans)
+            index_list.remove(link_max)
+            link_left = trans[index_list[0]]+trans[index_list[1]]
+            
+            for dp in self.datapaths:
+                parser = dp.ofproto_parser
+                if dp.id == 3:
+                    if(link_max == 1 and trans[link_max]>link_left) or (link_max!=3 and trans[link_max]<=link_left):
+                        match = parser.OFPMatch(
+                            eth_type=0x800,
+                            eth_dst='00:00:00:00:00:02',
+                            in_port=1,
+                            ip_proto=17
+                        ) 
+                        actions = [parser.OFPActionOutput(3-switch_max)]
+                        self.add_flow(dp, 5, match, actions)
+                    else:
+                        match = parser.OFPMatch(
+                            eth_type=0x800,
+                            eth_dst='00:00:00:00:00:02',
+                            in_port=1,
+                            ip_proto=17
+                        ) 
+                        actions = [parser.OFPActionOutput(switch_max+2)]
+                        self.add_flow(dp, 5, match, actions)
+
+                    if(link_max == 2 and trans[link_max]>link_left) or (link_max!=3 and trans[link_max]<=link_left):
+                        match = parser.OFPMatch(
+                            eth_type=0x800,
+                            eth_dst='00:00:00:00:00:03',
+                            in_port=1,
+                            ip_proto=17
+                        ) 
+                        actions = [parser.OFPActionOutput(3-switch_max)]
+                        self.add_flow(dp, 5, match, actions)
+                    else:
+                        match = parser.OFPMatch(
+                            eth_type=0x800,
+                            eth_dst='00:00:00:00:00:03',
+                            in_port=1,
+                            ip_proto=17
+                        ) 
+                        actions = [parser.OFPActionOutput(switch_max+2)]
+                        self.add_flow(dp, 5, match, actions)
+
+                elif dp.id == 4:
+                    if(link_max == 3 and trans[link_max]>link_left) or (link_max!=3 and trans[link_max]<=link_left):
+                        match = parser.OFPMatch(
+                            eth_type=0x800,
+                            eth_dst='00:00:00:00:00:03',
+                            in_port=1,
+                            ip_proto=17
+                        ) 
+                        actions = [parser.OFPActionOutput(3-switch_max)]
+                        self.add_flow(dp, 5, match, actions)
+                    else:
+                        match = parser.OFPMatch(
+                            eth_type=0x800,
+                            eth_dst='00:00:00:00:00:03',
+                            in_port=1,
+                            ip_proto=17
+                        ) 
+                        actions = [parser.OFPActionOutput(switch_max+2)]
+                        self.add_flow(dp, 5, match, actions)
+
+            
+
+
+
+
             self.linkTraffic.append(self.tempTraffic)
-	    self.tempTraffic = [0] * 15
-            print(self.linkTraffic)
+            self.tempTraffic = [0] * 15
             for dp in self.datapaths.values():
                 self._request_stats(dp)
 
-	    #chihchien
-	    self.timeTick = self.timeTick + 10
-	    self.logger.info("Running for %d seconds", self.timeTick)
-	    if self.timeTick == 30:
-                #plotting
-		for x in range(len(self.linkTraffic) - 1, 0, -1):
+        #chihchien
+            self.timeTick = self.timeTick + 10
+            self.logger.info("Running for %d seconds", self.timeTick)
+            if self.timeTick == 60:
+                #TlinkTraffic = numpy.transpose(self.linkTraffic)
+                    #t = numpy.arange(0, 10 * len(TlinkTraffic), 10)
+                for x in range(len(self.linkTraffic) - 1, 0, -1):
                     self.logger.info("xxxxxxxx=%d", x)
-		    for y in range(len(self.linkTraffic)):
+                    for y in range(len(self.linkTraffic)):
                         self.linkTraffic[x][y] = self.linkTraffic[x][y] - self.linkTraffic[x-1][y]
-                
-	        TlinkTraffic = numpy.transpose(self.linkTraffic)
+                    TlinkTraffic = numpy.transpose(self.linkTraffic)
                 for linkN in range(0, len(TlinkTraffic) ):
                     t = numpy.arange(0, 10 * len(TlinkTraffic[0]), 10)
                     plt.subplot(3, 5, linkN+1)
-	            plt.plot(t, TlinkTraffic[linkN])
+                    plt.plot(t, TlinkTraffic[linkN])
                     self.logger.info(linkN)
                     self.logger.info(TlinkTraffic[14])
                     self.logger.info("sucks")
-	        plt.show()
-            hub.sleep(1)
+                    plt.show()
+                    hub.sleep(10)
 
     def _request_stats(self, datapath):
         self.logger.debug('send stats request: %016x', datapath.id)
@@ -142,6 +225,15 @@ class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
                              stat.match['in_port'], stat.match['eth_dst'],
                              stat.instructions[0].actions[0].port,
                              stat.packet_count, stat.byte_count)
+            if ev.msg.datapath.id <= 2:
+                idx = (ev.msg.datapath.id - 1) * 3
+                if stat.match['in_port'] == 1 and stat.match['eth_dst'] == '10.0.0.2':
+                    idx = idx
+                elif stat.match['in_port'] == 1 and stat.match['eth_dst'] == '10.0.0.3':
+                    idx = idx + 1
+                elif stat.match['in_port'] == 2 and stat.match['eth_dst'] == '10.0.0.3':
+                    idx = idx + 2
+                self.tempFlow[idx] = stat.byte_count
 
     @set_ev_cls(ofp_event.EventOFPPortStatsReply, MAIN_DISPATCHER)
     def _port_stats_reply_handler(self, ev):
